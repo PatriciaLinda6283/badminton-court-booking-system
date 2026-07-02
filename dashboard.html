@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard | BadmintonPro</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .slider-section { margin-bottom: 32px; }
+    .slider-section h2 { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:0.04em; margin-bottom:14px; color:var(--black); }
+    .slider-wrap { position: relative; overflow: hidden; border-radius: 12px 12px 0 0; box-shadow: var(--shadow); }
+    .slider-track { display: flex; transition: transform 0.45s cubic-bezier(.4,0,.2,1); }
+    .slide { min-width: 100%; position: relative; height: 360px; background: var(--black3); overflow: hidden; flex-shrink: 0; }
+    .slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .slide-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #141414 0%, #1e1e1e 100%); gap: 12px; }
+    .slide-placeholder .ph-icon { width: 72px; height: 72px; background: rgba(204,0,0,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .slide-placeholder .ph-icon svg { width:36px; height:36px; stroke: var(--red); fill:none; stroke-width:1.5; }
+    .slide-placeholder span { color: #555; font-size:0.85rem; }
+    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
+    .slider-btn:hover { background: var(--red); }
+    .slider-btn svg { width:18px; height:18px; stroke:white; fill:none; stroke-width:2.5; }
+    .slider-prev { left: 14px; }
+    .slider-next { right: 14px; }
+    .slider-dots { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; cursor: pointer; transition: all 0.2s; border: none; padding: 0; }
+    .dot.active { background: var(--red); width: 22px; border-radius: 4px; }
+    .court-captions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-radius: 0 0 12px 12px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 32px; }
+    .caption-card { background: white; padding: 16px 18px; border-right: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; border-top: 3px solid transparent; }
+    .caption-card:last-child { border-right: none; }
+    .caption-card:hover { background: #fafafa; }
+    .caption-card.active { border-top-color: var(--red); background: #fff8f8; }
+    .caption-card .court-num { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--black); letter-spacing: 0.04em; }
+    .caption-card .court-tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--red); margin-bottom: 6px; }
+    .caption-card .court-desc { font-size: 0.78rem; color: #666; line-height: 1.5; margin-bottom: 8px; }
+    .caption-card .court-price { font-weight: 800; font-size: 1rem; color: var(--black); }
+    .caption-card .court-price span { font-size: 0.75rem; font-weight: 400; color: #888; }
+    .membership-ad { background: var(--black); border-radius: 12px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 32px; box-shadow: var(--shadow); }
+    .mem-ad-left { padding: 36px 40px; position: relative; }
+    .mem-ad-left::before { content:''; position: absolute; top:-40px; right:-40px; width:200px; height:200px; background: var(--red); border-radius: 50%; opacity: 0.08; }
+    .mem-ad-tag { display: inline-block; background: var(--red); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; }
+    .mem-ad-left h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; color: white; line-height: 1.05; margin-bottom: 12px; }
+    .mem-ad-left h2 span { color: var(--red); }
+    .mem-ad-left p { color: #888; font-size: 0.88rem; line-height: 1.6; margin-bottom: 24px; max-width: 320px; }
+    .mem-ad-left a { display: inline-block; background: var(--red); color: white; font-weight: 700; font-size: 0.85rem; padding: 12px 28px; border-radius: 6px; text-decoration: none; transition: background 0.2s, transform 0.2s; }
+    .mem-ad-left a:hover { background: var(--red-hot); transform: translateY(-2px); }
+    .mem-ad-right { background: var(--black3); padding: 36px 32px; display: flex; flex-direction: column; gap: 16px; }
+    .mem-ad-right h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: #888; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .benefit-item { display: flex; align-items: flex-start; gap: 14px; }
+    .benefit-icon { width: 38px; height: 38px; background: rgba(204,0,0,0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .benefit-icon svg { width:18px; height:18px; stroke: var(--red); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .benefit-text .b-title { font-weight:700; font-size:0.88rem; color:white; }
+    .benefit-text .b-desc { font-size:0.78rem; color:#666; margin-top:2px; }
+    .plans-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 32px; }
+    .plan-card { background: white; border-radius: 10px; padding: 20px; box-shadow: var(--shadow); border-top: 3px solid #ddd; text-align: center; transition: transform 0.2s, box-shadow 0.2s; }
+    .plan-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); }
+    .plan-card.featured { border-top-color: var(--red); }
+    .plan-card .plan-name { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:0.04em; color:var(--black); }
+    .plan-card .plan-price { font-size:1.6rem; font-weight:800; color:var(--red); margin:6px 0 2px; }
+    .plan-card .plan-price span { font-size:0.78rem; font-weight:400; color:#888; }
+    .plan-card .plan-desc { font-size:0.78rem; color:#888; }
+  </style>
+</head>
+<body data-page="dashboard">
+  <div class="app-root">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" style="width: 100%; height: 100%;">
+            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1.2" fill="none" opacity="0.9" />
+            <ellipse cx="13.5" cy="10.5" rx="2.2" ry="2.8" transform="rotate(45 13.5 10.5)" stroke="white" stroke-width="1.2" />
+            <line x1="11.5" y1="12.5" x2="6.5" y2="17.5" stroke="white" stroke-width="1.2" />
+            <line x1="6.5" y1="17.5" x2="5" y2="19" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+            <ellipse cx="10.5" cy="10.5" rx="2.2" ry="2.8" transform="rotate(-45 10.5 10.5)" stroke="white" stroke-width="1.2" />
+            <line x1="12.5" y1="12.5" x2="17.5" y2="17.5" stroke="white" stroke-width="1.2" />
+            <line x1="17.5" y1="17.5" x2="19" y2="19" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+            <g fill="white">
+              <path d="M12 4.5 C11.6 4.5, 11.3 4.8, 11.3 5.2 C11.3 5.4, 11.4 5.6, 12 6 C12.6 5.6, 12.7 5.4, 12.7 5.2 C12.7 4.8, 12.4 4.5, 12 4.5 Z" />
+              <path d="M11.3 5.5 L9.5 8.5 C9.5 8.5, 12 9, 14.5 8.5 L12.7 5.5 Z" opacity="0.85" />
+            </g>
+          </svg>
+        </div>
+        <span>Badminton<br>Pro</span>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-name" id="sidebarName">Loading...</div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="active"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+        <a href="booking.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Book Court</a>
+        <a href="availability.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Availability</a>
+        <a href="history.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg> My Bookings</a>
+        <a href="membership.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg> Membership</a>
+        <a href="profile.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profile</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="btn-logout" id="logoutButton">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Good to see you, <strong id="welcomeName">Player</strong>! Ready to play?</p>
+      </div>
+
+      <div class="slider-section">
+        <h2>Our Courts</h2>
+        <div class="slider-wrap">
+          <div class="slider-track" id="sliderTrack">
+            <div class="slide">
+              <img src="image/court1.jpeg" alt="Court 1" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="slide-placeholder" style="display:none">
+                <div class="ph-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+                <span>Letak court1.jpg dalam folder yang sama</span>
+              </div>
+            </div>
+            <div class="slide">
+              <img src="image/court2.jpeg" alt="Court 2" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="slide-placeholder" style="display:none">
+                <div class="ph-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+                <span>Letak court2.jpg dalam folder yang sama</span>
+              </div>
+            </div>
+            <div class="slide">
+              <img src="image/court3.jpeg" alt="Court 3" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="slide-placeholder" style="display:none">
+                <div class="ph-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+                <span>Letak court3.jpg dalam folder yang sama</span>
+              </div>
+            </div>
+            <div class="slide">
+              <img src="image/court4.jpeg" alt="Court 4" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="slide-placeholder" style="display:none">
+                <div class="ph-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+                <span>Letak court4.jpg dalam folder yang sama</span>
+              </div>
+            </div>
+          </div>
+          <button class="slider-btn slider-prev" id="sliderPrev"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="slider-btn slider-next" id="sliderNext"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        </div>
+
+        <div class="slider-dots" id="sliderDots">
+          <button class="dot active" data-index="0"></button>
+          <button class="dot" data-index="1"></button>
+          <button class="dot" data-index="2"></button>
+          <button class="dot" data-index="3"></button>
+        </div>
+
+        <div class="court-captions">
+          <div class="caption-card active" data-index="0" onclick="goTo(0)">
+            <div class="court-tag">Standard</div>
+            <div class="court-num">Court 1</div>
+            <div class="court-desc">Synthetic flooring · Full LED lighting · Spectator seating</div>
+            <div class="court-price">RM35 <span>/ hour</span></div>
+          </div>
+          <div class="caption-card" data-index="1" onclick="goTo(1)">
+            <div class="court-tag">⭐ Premium</div>
+            <div class="court-num">Court 2</div>
+            <div class="court-desc">Blue synthetic · Air-conditioned · Glass wall · VIP experience</div>
+            <div class="court-price">RM65 <span>/ hour</span></div>
+          </div>
+          <div class="caption-card" data-index="2" onclick="goTo(2)">
+            <div class="court-tag">Elite</div>
+            <div class="court-num">Court 3</div>
+            <div class="court-desc">Wooden flooring · Tournament ready · Professional grade</div>
+            <div class="court-price">RM45 <span>/ hour</span></div>
+          </div>
+          <div class="caption-card" data-index="3" onclick="goTo(3)">
+            <div class="court-tag">Basic</div>
+            <div class="court-num">Court 4</div>
+            <div class="court-desc">Synthetic flooring · Bright lighting · Great for beginners</div>
+            <div class="court-price">RM20 <span>/ hour</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="membership-ad">
+        <div class="mem-ad-left">
+          <div class="mem-ad-tag">🏸 Members Only</div>
+          <h2>Unlock<br><span>Pro</span><br>Benefits</h2>
+          <p>Join BadmintonPro membership and get priority bookings, up to <strong style="color:white;">15% discount</strong>, and exclusive access to all 4 courts.</p>
+          <a href="membership.html">Get Membership →</a>
+        </div>
+        <div class="mem-ad-right">
+          <h3>What You Get</h3>
+          <div class="benefit-item">
+            <div class="benefit-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="benefit-text"><div class="b-title">Priority Booking</div><div class="b-desc">Book courts up to 7 days in advance</div></div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+            <div class="benefit-text"><div class="b-title">Flexible Hours</div><div class="b-desc">Access all time slots including peak hours</div></div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+            <div class="benefit-text"><div class="b-title">Tiered Discounts</div><div class="b-desc">Monthly 5% · Quarterly 10% · Yearly 15%</div></div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="benefit-text"><div class="b-title">Community Access</div><div class="b-desc">Join weekly tournaments and group sessions</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plans-row">
+        <div class="plan-card">
+          <div class="plan-name">Monthly</div>
+          <div class="plan-price">RM25 <span>/ month</span></div>
+          <div class="plan-desc">5% discount · Perfect for casual players</div>
+        </div>
+        <div class="plan-card featured">
+          <div class="plan-name">Quarterly</div>
+          <div class="plan-price">RM60 <span>/ 3 months</span></div>
+          <div class="plan-desc">⭐ Most popular · 10% discount · Save RM15</div>
+        </div>
+        <div class="plan-card">
+          <div class="plan-name">Yearly</div>
+          <div class="plan-price">RM200 <span>/ year</span></div>
+          <div class="plan-desc">Best value · 15% discount · Save RM100</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    let current = 0;
+    const track = document.getElementById('sliderTrack');
+    const dots = document.querySelectorAll('.dot');
+    const captions = document.querySelectorAll('.caption-card');
+    const total = 4;
+
+    function goTo(index) {
+      current = (index + total) % total;
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+      captions.forEach((c, i) => c.classList.toggle('active', i === current));
+    }
+
+    document.getElementById('sliderNext').addEventListener('click', () => goTo(current + 1));
+    document.getElementById('sliderPrev').addEventListener('click', () => goTo(current - 1));
+    dots.forEach(d => d.addEventListener('click', () => goTo(+d.dataset.index)));
+
+    setInterval(() => goTo(current + 1), 4000);
+
+    // KEMAS KINI: Memastikan nama yang dipaparkan sepadan dengan struktur fail app.js (full_name)
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        const nameElement = document.getElementById('sidebarName');
+        if (nameElement) nameElement.textContent = currentUser.full_name || 'User';
+        const welcomeElement = document.getElementById('welcomeName');
+        if (welcomeElement) welcomeElement.textContent = currentUser.full_name || 'Player';
+      }
+    });
+  </script>
+</body>
+</html>

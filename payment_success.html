@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment Successful | BadmintonPro</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #121212;
+      color: #ffffff;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .success-container {
+      max-width: 480px;
+      width: 90%;
+      margin: 20px auto;
+      text-align: center;
+      padding: 40px 30px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .success-icon {
+      width: 74px;
+      height: 74px;
+      background: #16a34a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 0 15px rgba(22, 163, 74, 0.4);
+    }
+    .success-icon svg {
+      width: 40px;
+      height: 40px;
+      stroke: #ffffff;
+      stroke-width: 3;
+      fill: none;
+    }
+    .success-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      color: #ffffff;
+    }
+    .success-desc {
+      color: #aaa;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 0 0 24px 0;
+    }
+    .info-box {
+      background: #111111;
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 28px;
+      font-size: 0.9rem;
+      text-align: left;
+      border: 1px solid #222222;
+    }
+    .info-status {
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    .info-text {
+      color: #cccccc;
+      line-height: 1.4;
+    }
+    .countdown-text {
+      font-size: 0.8rem;
+      color: #666666;
+      margin-top: 16px;
+      margin-bottom: 0;
+    }
+    #countdown {
+      color: var(--red, #e53e3e);
+      font-weight: bold;
+    }
+    /* Memastikan butang utama menggunakan stail asal anda */
+    .btn-block {
+      display: block;
+      width: 100%;
+      text-decoration: none;
+      text-align: center;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="success-container">
+    <!-- Ikon Tanda Rait (Checkmark) -->
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    
+    <!-- Tajuk & Mesej Status Dinamik -->
+    <h1 class="success-title">Payment Successful!</h1>
+    <p id="successMessage" class="success-desc">Thank you! Your transaction was completed successfully.</p>
+    
+    <!-- Kotak Butiran Transaksi -->
+    <div class="info-box">
+      <div class="info-status">
+        <strong>Status:</strong> <span style="color:#16a34a; font-weight:bold;">Paid & Confirmed</span>
+      </div>
+      <div id="successDetails" class="info-text">
+        Your record has been updated securely in our system database.
+      </div>
+    </div>
+
+    <!-- Butang Tindakan Manual -->
+    <a id="successBtn" href="dashboard.html" class="btn btn-primary btn-block">Continue</a>
+    
+    <!-- Teks Hitung Mundur Auto-Redirect -->
+    <p class="countdown-text">Redirecting you automatically in <span id="countdown">5</span> seconds...</p>
+  </div>
+
+  <script>
+    // 1. Semak penanda daripada localStorage untuk kenal pasti jenis pembayaran
+    const isMembership = localStorage.getItem("lastPaymentType") === "membership";
+    const successMessage = document.getElementById("successMessage");
+    const successDetails = document.getElementById("successDetails");
+    const successBtn = document.getElementById("successBtn");
+    
+    // Tetapan asas (Default adalah sewaan gelanggang)
+    let redirectUrl = "history.html"; 
+
+    if (isMembership) {
+      // Jika pembayaran adalah jenis Keahlian (Membership)
+      redirectUrl = "membership.html";
+      if (successMessage) successMessage.textContent = "Thank you! Your membership plan has been successfully activated.";
+      if (successDetails) successDetails.textContent = "You can now enjoy your member discount privileges on court bookings immediately!";
+      if (successBtn) {
+        successBtn.textContent = "Back to Membership";
+        successBtn.href = "membership.html";
+      }
+    } else {
+      // Jika pembayaran adalah jenis Tempahan Gelanggang (Court Booking)
+      redirectUrl = "history.html";
+      if (successMessage) successMessage.textContent = "Thank you! Your badminton court booking has been secured.";
+      if (successDetails) successDetails.textContent = "Your slot is officially reserved. You can view your match pass in 'My Bookings' history.";
+      if (successBtn) {
+        successBtn.textContent = "Go to My Bookings";
+        successBtn.href = "history.html";
+      }
+    }
+
+    // 2. Logik pemasa hitung mundur selama 5 saat sebelum auto-redirect
+    let seconds = 5;
+    const countdownEl = document.getElementById("countdown");
+    
+    const interval = setInterval(() => {
+      seconds--;
+      if (countdownEl) countdownEl.textContent = seconds;
+      
+      if (seconds <= 0) {
+        clearInterval(interval);
+        window.location.href = redirectUrl;
+      }
+    }, 1000);
+  </script>
+
+</body>
+</html>

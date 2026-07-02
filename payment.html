@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment | BadmintonPro</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="payment">
+  <div class="app-root">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" fill="white"/></svg></div>
+        <span>Badminton<br>Pro</span>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-name" id="sidebarName">Loading...</div>
+        <div class="user-role">Member</div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Dashboard</a>
+        <a href="booking.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Book Court</a>
+        <a href="availability.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Availability</a>
+        <a href="history.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg> My Bookings</a>
+        <a href="membership.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg> Membership</a>
+        <a href="profile.html"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profile</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="btn-logout" id="logoutButton">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Payment</h1>
+        <p>Complete your booking by making payment</p>
+      </div>
+      <!-- Summary card -->
+      <div class="card" style="background:var(--black);color:var(--white);border:none;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:0.75rem;color:#888;text-transform:uppercase;letter-spacing:0.07em;">Booking Reference</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.04em;">#<span id="paymentBookingId">—</span></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.75rem;color:#888;text-transform:uppercase;letter-spacing:0.07em;">Amount Due</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--red);">RM <span id="paymentAmountDisplay">0.00</span></div>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #2a2a2a;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:0.8rem;color:#888;">Status:</span>
+          <span id="paymentStatusBadge" class="badge badge-pending">Pending</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Payment Details</div>
+        <input type="hidden" id="paymentBookingIdHidden">
+        <input type="hidden" id="paymentAmount">
+        <div class="field">
+          <label for="paymentMethod">Payment Method</label>
+          <select id="paymentMethod">
+            <option value="Online Banking">Online Banking</option>
+            <option value="E-Wallet">E-Wallet</option>
+            <option value="Cash">Cash</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="paymentDate">Payment Date</label>
+          <!-- DIKEMAS KINI: Ditambah atribut readonly dan gaya background kelabu cerah -->
+          <input id="paymentDate" type="date" required readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+        </div>
+        <p id="paymentMessage" class="message"></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <button class="btn btn-secondary" id="cancelPayment" type="button">Cancel</button>
+          <button class="btn btn-primary" id="confirmPaymentBtn" type="button">Confirm Payment</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

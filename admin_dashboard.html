@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard | BadmintonPro</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .admin-sidebar .user-role { color: #E8000E !important; }
+    .admin-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:28px; }
+  </style>
+</head>
+<body data-page="admin">
+  <div class="app-root">
+    <aside class="sidebar admin-sidebar">
+      <div class="sidebar-logo">
+        <!-- DIKEMAS KINI: Logo Premium Baru Bergaya Minimalis & Professional -->
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" style="width: 100%; height: 100%;">
+            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1.2" fill="none" opacity="0.9" />
+            
+            <!-- Raket Kiri -->
+            <ellipse cx="13.5" cy="10.5" rx="2.2" ry="2.8" transform="rotate(45 13.5 10.5)" stroke="white" stroke-width="1.2" />
+            <line x1="11.5" y1="12.5" x2="6.5" y2="17.5" stroke="white" stroke-width="1.2" />
+            <line x1="6.5" y1="17.5" x2="5" y2="19" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+            
+            <!-- Raket Kanan -->
+            <ellipse cx="10.5" cy="10.5" rx="2.2" ry="2.8" transform="rotate(-45 10.5 10.5)" stroke="white" stroke-width="1.2" />
+            <line x1="12.5" y1="12.5" x2="17.5" y2="17.5" stroke="white" stroke-width="1.2" />
+            <line x1="17.5" y1="17.5" x2="19" y2="19" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+
+            <!-- Bulu Tangkis (Shuttlecock) -->
+            <g fill="white">
+              <path d="M12 4.5 C11.6 4.5, 11.3 4.8, 11.3 5.2 C11.3 5.4, 11.4 5.6, 12 6 C12.6 5.6, 12.7 5.4, 12.7 5.2 C12.7 4.8, 12.4 4.5, 12 4.5 Z" />
+              <path d="M11.3 5.5 L9.5 8.5 C9.5 8.5, 12 9, 14.5 8.5 L12.7 5.5 Z" opacity="0.85" />
+            </g>
+          </svg>
+        </div>
+        <span>Badminton<br>Pro</span>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-name">System Admin</div>
+        <div class="user-role" style="color:var(--red)">Administrator</div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="admin_dashboard.html" class="active">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Admin Dashboard
+        </a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="btn-logout" id="adminLogout">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Admin Dashboard</h1>
+        <p>Manage users, bookings, and court operations</p>
+      </div>
+
+      <!-- Users Table -->
+      <div class="card">
+        <div class="card-title">Registered Users</div>
+        <div class="table-wrap">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="white-space: nowrap; padding: 12px 8px; text-align: left;">ID</th>
+                <th style="white-space: nowrap; padding: 12px 8px; text-align: left;">Full Name</th>
+                <th style="white-space: nowrap; padding: 12px 8px; text-align: left;">Email</th>
+                <th style="white-space: nowrap; padding: 12px 8px; text-align: left;">Phone</th>
+                <th style="white-space: nowrap; padding: 12px 8px; text-align: left;">Membership Type</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersList">
+              <tr><td colspan="5" style="text-align:center;padding:20px;color:#888;">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bookings Management -->
+      <div class="card">
+        <div class="card-title">Manage Bookings</div>
+        <div class="filter-bar">
+          <div class="field">
+            <label for="searchName">Search by Name</label>
+            <input type="text" id="searchName" placeholder="Player name...">
+          </div>
+          <div class="field">
+            <label for="filterStatus">Status</label>
+            <select id="filterStatus">
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filterDate">Date</label>
+            <input type="date" id="filterDate">
+          </div>
+          <button class="btn btn-primary" id="btnSearch">Search</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>PLAYER</th>
+                <th>COURT</th>
+                <th>DATE & TIME</th>
+                <th>PRICE</th>
+                <th>STATUS</th>
+                <th>BOOKING MADE ON</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="adminBookingsList">
+              <tr><td colspan="8" style="text-align:center;padding:20px;color:#888;">Loading bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

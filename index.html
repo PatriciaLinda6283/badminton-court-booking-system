@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | BadmintonPro</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Styling untuk menyelaraskan kedudukan butang show/hide password */
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .password-wrapper input {
+      width: 100%;
+      padding-right: 45px; /* Beri ruang untuk ikon mata */
+    }
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toggle-password svg {
+      width: 20px;
+      height: 20px;
+      stroke: #888;
+      fill: none;
+      stroke-width: 1.5;
+      transition: stroke 0.2s;
+    }
+    .toggle-password:hover svg {
+      stroke: var(--red);
+    }
+  </style>
+</head>
+<body data-page="login">
+  <div class="auth-root">
+    <div class="auth-hero">
+      <div class="auth-hero-logo">
+        <!-- Logo Premium Bergaya Minimalis & Professional -->
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" style="width: 100%; height: 100%;">
+            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1.2" fill="none" opacity="0.9" />
+            
+            <!-- Raket Kiri -->
+            <ellipse cx="13.5" cy="10.5" rx="2.2" ry="2.8" transform="rotate(45 13.5 10.5)" stroke="white" stroke-width="1.2" />
+            <line x1="11.5" y1="12.5" x2="6.5" y2="17.5" stroke="white" stroke-width="1.2" />
+            <line x1="6.5" y1="17.5" x2="5" y2="19" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+            
+            <!-- Raket Kanan -->
+            <ellipse cx="10.5" cy="10.5" rx="2.2" ry="2.8" transform="rotate(-45 10.5 10.5)" stroke="white" stroke-width="1.2" />
+            <line x1="12.5" y1="12.5" x2="17.5" y2="17.5" stroke="white" stroke-width="1.2" />
+            <line x1="17.5" y1="17.5" x2="19" y2="19" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+
+            <!-- Bulu Tangkis (Shuttlecock) -->
+            <g fill="white">
+              <path d="M12 4.5 C11.6 4.5, 11.3 4.8, 11.3 5.2 C11.3 5.4, 11.4 5.6, 12 6 C12.6 5.6, 12.7 5.4, 12.7 5.2 C12.7 4.8, 12.4 4.5, 12 4.5 Z" />
+              <path d="M11.3 5.5 L9.5 8.5 C9.5 8.5, 12 9, 14.5 8.5 L12.7 5.5 Z" opacity="0.85" />
+            </g>
+          </svg>
+        </div>
+        <span>BadmintonPro</span>
+      </div>
+      <div class="auth-hero-content">
+        <h1>Book Your<br><span>Court</span><br>Today</h1>
+        <p>Reserve premium badminton courts instantly. Play more, wait less.</p>
+      </div>
+    </div>
+    <div class="auth-panel">
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in to your account to continue</p>
+      
+      <div class="field">
+        <label for="loginEmail">Email Address</label>
+        <input id="loginEmail" type="email" placeholder="you@example.com" required>
+      </div>
+      
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <!-- DIKEMAS KINI: Menggunakan struktur password-wrapper & butang mata yang sama seperti register -->
+        <div class="password-wrapper">
+          <input id="loginPassword" type="password" placeholder="••••••••" required>
+          <button type="button" class="toggle-password" id="togglePasswordToggle" aria-label="Toggle password visibility">
+            <svg id="eyeIcon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <p id="loginMessage" class="message"></p>
+      <button class="btn btn-primary" id="loginBtn" type="button">Sign In</button>
+      <p class="auth-footer">New here? <a href="register.html">Create an account</a></p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Logik Javascript untuk fungsi nampak/sembunyi password
+    document.addEventListener('DOMContentLoaded', () => {
+      const passwordInput = document.getElementById('loginPassword');
+      const toggleButton = document.getElementById('togglePasswordToggle');
+      const eyeIcon = document.getElementById('eyeIcon');
+
+      toggleButton.addEventListener('click', () => {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+        if (isPassword) {
+          eyeIcon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          `;
+          eyeIcon.style.stroke = "var(--red)";
+        } else {
+          eyeIcon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line x1="1" y1="1" x2="23" y2="23" stroke-width="1.5"/>
+          `;
+          eyeIcon.style.stroke = "#888";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
