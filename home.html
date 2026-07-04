@@ -5,11 +5,138 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Home | Badminton Pro</title>
   <link rel="stylesheet" href="styles.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #222;
+    }
+
+    header {
+      background: #111;
+      color: white;
+      padding: 18px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: white;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 22px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      color: #e63946;
+    }
+
+    nav a:nth-last-child(2),
+    nav a:last-child {
+      background: #e63946;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+    }
+
+    nav a:nth-last-child(2):hover,
+    nav a:last-child:hover {
+      background: #c92f3b;
+      color: white;
+    }
+
+    #welcome {
+      background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), #222;
+      color: white;
+      text-align: center;
+      padding: 90px 25px;
+    }
+
+    #welcome h2 {
+      font-size: 42px;
+      margin-bottom: 18px;
+    }
+
+    #welcome p {
+      max-width: 750px;
+      margin: 0 auto;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    main section {
+      max-width: 950px;
+      margin: 0 auto;
+      padding: 50px 25px;
+    }
+
+    main section h2 {
+      color: #e63946;
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 24px;
+    }
+
+    main section p {
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    #about,
+    #policy {
+      background: white;
+    }
+
+    #contact {
+      background: #f1f1f1;
+      border-radius: 8px;
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+
+    footer {
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 18px 25px;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      nav {
+        text-align: center;
+      }
+
+      nav a {
+        display: inline-block;
+        margin: 6px;
+      }
+
+      #welcome h2 {
+        font-size: 32px;
+      }
+    }
+  </style>
 </head>
 
 <body>
   <header>
-    <h1>Badminton Court Booking System</h1>
+    <h1>Badminton Pro</h1>
 
     <nav>
       <a href="#welcome">Welcome</a>
@@ -45,7 +172,7 @@
 
     <section id="contact">
       <h2>Contact</h2>
-      <p>Email: badmintonprog@gmai.com</p>
+      <p>Email: badmintonprog@gmail.com</p>
       <p>Phone: 012-3456789</p>
       <p>Address: Badminton Pro Court Centre, Petaling Jaya, Selangor, Malaysia</p>
     </section>
@@ -66,7 +193,7 @@
   </main>
 
   <footer>
-    <p>&copy; 2026 Badminton Court Booking System</p>
+    <p>&copy; 2026 Badminton Pro</p>
   </footer>
 </body>
 </html>
