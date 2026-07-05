@@ -147,7 +147,7 @@ function calcAmount(court, slot, userId) {
   return { base, discount, total: base - discount, discountRate };
 }
 
-// ---- DIKEMAS KINI: Menukar nama dinamik untuk Sidebar & Dashboard Ucapan secara automatik ----
+// ---- Menukar nama dinamik untuk Sidebar & Dashboard Ucapan secara automatik ----
 function initSidebar() {
   const user = JSON.parse(localStorage.getItem("currentUser"));
   
@@ -184,20 +184,23 @@ function initAuthPages() {
       });
     }
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-      const password = document.getElementById("loginPassword").value;
-      const msg = document.getElementById("loginMessage");
-      if (msg) { msg.textContent = ""; msg.className = "message"; }
-      const users = getDB("users");
-      const user = users.find(u => u.email === email && u.password === password);
-      if (user) {
-        localStorage.setItem("currentUser", JSON.stringify(user));
-        window.location.href = user.role === "Admin" ? "admin_dashboard.html" : "dashboard.html";
-      } else {
-        if (msg) msg.textContent = "Invalid email or password.";
-      }
-    });
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", () => {
+        const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+        const password = document.getElementById("loginPassword").value;
+        const msg = document.getElementById("loginMessage");
+        if (msg) { msg.textContent = ""; msg.className = "message"; }
+        const users = getDB("users");
+        const user = users.find(u => u.email === email && u.password === password);
+        if (user) {
+          localStorage.setItem("currentUser", JSON.stringify(user));
+          window.location.href = user.role === "Admin" ? "admin_dashboard.html" : "dashboard.html";
+        } else {
+          if (msg) msg.textContent = "Invalid email or password.";
+        }
+      });
+    }
   }
 
   if (page === "register") {
@@ -227,11 +230,10 @@ function initAuthPages() {
 // ============================================
 function initDashboard() {
   requireUser();
-  // Nota: Logik penukaran nama welcomeName telah diletakkan di initSidebar() supaya dipanggil serentak.
 }
 
 // ============================================
-// PROFILE
+// PROFILE — DIKEMAS KINI (DENGAN FIX AVATAR)
 // ============================================
 function initProfile() {
   const user = requireUser();
@@ -251,9 +253,16 @@ function initProfile() {
 
   const avatarImage = document.getElementById("avatarImage");
   const avatarInput = document.getElementById("avatarInput");
-  
+  const avatarSvg = document.getElementById("avatarSvg");
+
+  // PAPARAN GAMBAR: Jika user memang dah ada gambar profil, tunjuk gambar & sorok SVG kelabu
   if (avatarImage && user.profile_picture) {
     avatarImage.src = user.profile_picture;
+    avatarImage.style.display = "block";
+    avatarImage.style.width = "100%";
+    avatarImage.style.height = "100%";
+    avatarImage.style.objectFit = "cover";
+    if (avatarSvg) avatarSvg.style.display = "none";
   }
 
   if (avatarInput) {
@@ -264,15 +273,27 @@ function initProfile() {
       const reader = new FileReader();
       reader.onloadend = function() {
         const base64String = reader.result;
-        if (avatarImage) avatarImage.src = base64String;
+        
+        // Terus tukar paparan di skrin supaya nampak perubahan real-time
+        if (avatarImage) {
+          avatarImage.src = base64String;
+          avatarImage.style.display = "block";
+          avatarImage.style.width = "100%";
+          avatarImage.style.height = "100%";
+          avatarImage.style.objectFit = "cover";
+        }
+        if (avatarSvg) avatarSvg.style.display = "none";
 
+        // Simpan ke dalam database localStorage
         const users = getDB("users");
         const idx = users.findIndex(u => u.user_id === user.user_id);
         if (idx !== -1) {
           users[idx].profile_picture = base64String;
           setDB("users", users);
           localStorage.setItem("currentUser", JSON.stringify(users[idx]));
-          window.location.reload(); 
+          
+          // Beri sedikit masa (300ms) untuk pelayar stabilkan storan sebelum refresh
+          setTimeout(() => window.location.reload(), 300);
         }
       };
       reader.readAsDataURL(file);
