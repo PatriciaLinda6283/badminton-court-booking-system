@@ -18,6 +18,15 @@ const COURT_LABELS = {
   "Court 4": "Court 4 — RM20/hr (Basic)"
 };
 
+// Source of truth for each court's fixed type/price — used to auto-repair
+// any "courts" data in localStorage that is missing or out of date.
+const COURT_DEFAULTS = {
+  "Court 1": { court_type: "Standard", price_per_hour: 35 },
+  "Court 2": { court_type: "Premium", price_per_hour: 65 },
+  "Court 3": { court_type: "Elite", price_per_hour: 45 },
+  "Court 4": { court_type: "Basic", price_per_hour: 20 }
+};
+
 const MEMBER_DISCOUNT = {
   "Monthly": 0.05,
   "Quarterly": 0.10,
@@ -74,6 +83,54 @@ function seedData() {
     setDB("nextPaymentId", 1);
     localStorage.setItem("seeded", "1");
   }
+
+  // Migration-safe seeding: runs even for installs that were seeded
+  // before COURTS/BOOKING_HISTORY existed, so existing users don't lose data.
+  if (!localStorage.getItem("courts")) {
+    setDB("courts", [
+      { court_id: 1, court_name: "Court 1", court_type: "Standard", price_per_hour: 35, status: "Available" },
+      { court_id: 2, court_name: "Court 2", court_type: "Premium", price_per_hour: 65, status: "Available" },
+      { court_id: 3, court_name: "Court 3", court_type: "Elite", price_per_hour: 45, status: "Available" },
+      { court_id: 4, court_name: "Court 4", court_type: "Basic", price_per_hour: 20, status: "Available" }
+    ]);
+  }
+  if (!localStorage.getItem("booking_history")) {
+    setDB("booking_history", []);
+    setDB("nextHistoryId", 1);
+  }
+
+  repairCourtsData();
+}
+
+// Fixes any court records that are missing or have wrong court_type /
+// price_per_hour / status — e.g. leftover data from an older version of
+// this app. Runs on every page load, so it self-heals automatically.
+function repairCourtsData() {
+  let courts = getDB("courts");
+  if (!courts || courts.length === 0) {
+    courts = Object.keys(COURT_DEFAULTS).map((name, i) => ({
+      court_id: i + 1,
+      court_name: name,
+      court_type: COURT_DEFAULTS[name].court_type,
+      price_per_hour: COURT_DEFAULTS[name].price_per_hour,
+      status: "Available"
+    }));
+    setDB("courts", courts);
+    return;
+  }
+
+  let changed = false;
+  courts = courts.map((c, i) => {
+    const defaults = COURT_DEFAULTS[c.court_name];
+    const fixed = { ...c };
+    if (!fixed.court_id) { fixed.court_id = i + 1; changed = true; }
+    if (defaults && fixed.court_type !== defaults.court_type) { fixed.court_type = defaults.court_type; changed = true; }
+    if (defaults && fixed.price_per_hour !== defaults.price_per_hour) { fixed.price_per_hour = defaults.price_per_hour; changed = true; }
+    if (!fixed.status) { fixed.status = "Available"; changed = true; }
+    return fixed;
+  });
+
+  if (changed) setDB("courts", courts);
 }
 
 // ---- Utilities ----
@@ -109,7 +166,11 @@ function statusBadge(status) {
     Paid: 'badge-paid', 
     Refunded: 'badge-rejected', 
     Active: 'badge-active', 
-    None: 'badge-none' 
+    None: 'badge-none',
+    Expired: 'badge-rejected',
+    Cancelled: 'badge-rejected',
+    Available: 'badge-approved',
+    'Under Maintenance': 'badge-pending'
   };
   
   const inlineStyle = `
@@ -138,6 +199,28 @@ function getDiscount(userId) {
   return MEMBER_DISCOUNT[mem.membership_type] || 0;
 }
 
+// ---- Courts & Booking History helpers ----
+function getCourts() { return getDB("courts"); }
+
+function isCourtAvailable(courtName) {
+  const court = getCourts().find(c => c.court_name === courtName);
+  return court ? court.status === "Available" : true;
+}
+
+function logBookingHistory(bookingId, action, remarks) {
+  const history = getDB("booking_history");
+  const newId = getDB("nextHistoryId", 1);
+  history.push({
+    history_id: newId,
+    booking_id: bookingId,
+    action,
+    action_date: new Date().toLocaleString('en-US'),
+    remarks: remarks || ""
+  });
+  setDB("booking_history", history);
+  setDB("nextHistoryId", newId + 1);
+}
+
 function calcAmount(court, slot, userId) {
   const rate = COURT_PRICES[court] || 20;
   const hours = SLOT_HOURS[slot] || 2;
@@ -147,7 +230,7 @@ function calcAmount(court, slot, userId) {
   return { base, discount, total: base - discount, discountRate };
 }
 
-// ---- DIKEMAS KINI: Menukar nama dinamik untuk Sidebar & Dashboard Ucapan secara automatik ----
+// ---- Menukar nama dinamik untuk Sidebar & Dashboard Ucapan secara automatik ----
 function initSidebar() {
   const user = JSON.parse(localStorage.getItem("currentUser"));
   
@@ -184,20 +267,23 @@ function initAuthPages() {
       });
     }
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-      const password = document.getElementById("loginPassword").value;
-      const msg = document.getElementById("loginMessage");
-      if (msg) { msg.textContent = ""; msg.className = "message"; }
-      const users = getDB("users");
-      const user = users.find(u => u.email === email && u.password === password);
-      if (user) {
-        localStorage.setItem("currentUser", JSON.stringify(user));
-        window.location.href = user.role === "Admin" ? "admin_dashboard.html" : "dashboard.html";
-      } else {
-        if (msg) msg.textContent = "Invalid email or password.";
-      }
-    });
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", () => {
+        const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+        const password = document.getElementById("loginPassword").value;
+        const msg = document.getElementById("loginMessage");
+        if (msg) { msg.textContent = ""; msg.className = "message"; }
+        const users = getDB("users");
+        const user = users.find(u => u.email === email && u.password === password);
+        if (user) {
+          localStorage.setItem("currentUser", JSON.stringify(user));
+          window.location.href = user.role === "Admin" ? "admin_dashboard.html" : "dashboard.html";
+        } else {
+          if (msg) msg.textContent = "Invalid email or password.";
+        }
+      });
+    }
   }
 
   if (page === "register") {
@@ -227,11 +313,10 @@ function initAuthPages() {
 // ============================================
 function initDashboard() {
   requireUser();
-  // Nota: Logik penukaran nama welcomeName telah diletakkan di initSidebar() supaya dipanggil serentak.
 }
 
 // ============================================
-// PROFILE
+// PROFILE — DIKEMAS KINI (DENGAN FIX AVATAR)
 // ============================================
 function initProfile() {
   const user = requireUser();
@@ -251,9 +336,16 @@ function initProfile() {
 
   const avatarImage = document.getElementById("avatarImage");
   const avatarInput = document.getElementById("avatarInput");
-  
+  const avatarSvg = document.getElementById("avatarSvg");
+
+  // PAPARAN GAMBAR: Jika user memang dah ada gambar profil, tunjuk gambar & sorok SVG kelabu
   if (avatarImage && user.profile_picture) {
     avatarImage.src = user.profile_picture;
+    avatarImage.style.display = "block";
+    avatarImage.style.width = "100%";
+    avatarImage.style.height = "100%";
+    avatarImage.style.objectFit = "cover";
+    if (avatarSvg) avatarSvg.style.display = "none";
   }
 
   if (avatarInput) {
@@ -264,15 +356,27 @@ function initProfile() {
       const reader = new FileReader();
       reader.onloadend = function() {
         const base64String = reader.result;
-        if (avatarImage) avatarImage.src = base64String;
+        
+        // Terus tukar paparan di skrin supaya nampak perubahan real-time
+        if (avatarImage) {
+          avatarImage.src = base64String;
+          avatarImage.style.display = "block";
+          avatarImage.style.width = "100%";
+          avatarImage.style.height = "100%";
+          avatarImage.style.objectFit = "cover";
+        }
+        if (avatarSvg) avatarSvg.style.display = "none";
 
+        // Simpan ke dalam database localStorage
         const users = getDB("users");
         const idx = users.findIndex(u => u.user_id === user.user_id);
         if (idx !== -1) {
           users[idx].profile_picture = base64String;
           setDB("users", users);
           localStorage.setItem("currentUser", JSON.stringify(users[idx]));
-          window.location.reload(); 
+          
+          // Beri sedikit masa (300ms) untuk pelayar stabilkan storan sebelum refresh
+          setTimeout(() => window.location.reload(), 300);
         }
       };
       reader.readAsDataURL(file);
@@ -370,7 +474,8 @@ function initBooking() {
   const bookingMessage = document.getElementById("bookingMessage");
   const priceDisplay = document.getElementById("priceDisplay");
 
-  fillSelect(bookingCourt, COURTS, COURT_LABELS);
+  const availableCourtNames = getCourts().filter(c => c.status === "Available").map(c => c.court_name);
+  fillSelect(bookingCourt, availableCourtNames, COURT_LABELS);
   fillSelect(bookingSlot, TIME_SLOTS);
   bookingDate.value = today();
 
@@ -403,6 +508,8 @@ function initBooking() {
     const court = bookingCourt.value;
     const date = bookingDate.value;
     const slot = bookingSlot.value;
+    if (!isCourtAvailable(court)) { bookingMessage.textContent = "This court is currently under maintenance. Please choose another court."; return; }
+
     const bookings = getDB("bookings");
     const conflict = bookings.find(b => b.court_name === court && b.booking_date === date && b.slot === slot && b.status !== "Rejected");
     if (conflict) { bookingMessage.textContent = "This slot is already booked. Please choose another."; return; }
@@ -425,7 +532,8 @@ function initBooking() {
 
     setDB("bookings", bookings);
     setDB("nextBookingId", newId + 1);
-    
+    logBookingHistory(newId, "Created", `Booking submitted by ${user.full_name}`);
+
     localStorage.setItem("pendingPaymentId", newId);
     localStorage.setItem("isMembershipPayment", "false");
 
@@ -586,6 +694,11 @@ function renderAvailability() {
     const date = document.getElementById("availabilityDate").value;
     const tbody = document.getElementById("availabilityRows");
 
+    if (!isCourtAvailable(court)) {
+        tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:16px;color:#dc2626;font-weight:600;">This court is currently under maintenance.</td></tr>`;
+        return;
+    }
+
     const bookings = getDB("bookings");
 
     const bookedSlots = bookings
@@ -690,13 +803,22 @@ function initAdminDashboard() {
       : `<tr><td colspan="5" style="text-align:center;padding:20px;color:#888;">No users registered yet.</td></tr>`;
   }
 
+  function populateCourtFilter() {
+    const filterCourt = document.getElementById("filterCourt");
+    if (!filterCourt) return;
+    const courts = getCourts();
+    filterCourt.innerHTML = `<option value="">All Courts</option>` +
+      courts.map(c => `<option value="${c.court_name}">${c.court_name}</option>`).join("");
+  }
+
   function loadBookings() {
     const tbody = document.getElementById("adminBookingsList");
     if (!tbody) return;
 
-    const searchName = document.querySelector('input[placeholder="Player name..."]')?.value.trim().toLowerCase() || "";
-    const filterStatus = document.querySelector('select')?.value || "All";
-    const filterDate = document.querySelector('input[type="date"]')?.value || "";
+    const searchName = document.getElementById("searchName")?.value.trim().toLowerCase() || "";
+    const filterStatus = document.getElementById("filterStatus")?.value || "";
+    const filterDate = document.getElementById("filterDate")?.value || "";
+    const filterCourt = document.getElementById("filterCourt")?.value || "";
 
     const bookings = getDB("bookings") || [];
     const users = getDB("users") || [];
@@ -710,7 +832,7 @@ function initAdminDashboard() {
       });
     }
 
-    if (filterStatus !== "All") {
+    if (filterStatus) {
       filtered = filtered.filter(b => b.status === filterStatus);
     }
 
@@ -718,18 +840,25 @@ function initAdminDashboard() {
       filtered = filtered.filter(b => b.booking_date === filterDate);
     }
 
+    if (filterCourt) {
+      filtered = filtered.filter(b => b.court_name === filterCourt);
+    }
+
     tbody.innerHTML = filtered.length
       ? filtered.map(b => {
           const player = users.find(u => u.user_id === b.user_id) || { full_name: "Unknown", phone_number: "-" };
           let actionButtons = "";
+          const rescheduleBtn = `<button onclick="handleBookingReschedule(${b.booking_id})" style="background:#2563eb; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem; font-weight:600; margin-left:4px;">Reschedule</button>`;
           if (b.status === "Pending") {
             actionButtons = `
               <button onclick="handleBookingAction(${b.booking_id}, 'Approved')" style="background:#16a34a; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem; font-weight:600; margin-right:4px;">Approve</button>
               <button onclick="handleBookingAction(${b.booking_id}, 'Rejected')" style="background:#dc2626; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem; font-weight:600;">Reject</button>
+              ${rescheduleBtn}
             `;
           } else if (b.status === "Approved") {
             actionButtons = `
               <button onclick="handleBookingAction(${b.booking_id}, 'Rejected')" style="background:#dc2626; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem; font-weight:600;">Reject</button>
+              ${rescheduleBtn}
             `;
           } else {
             actionButtons = `
@@ -753,22 +882,132 @@ function initAdminDashboard() {
       : `<tr><td colspan="8" style="text-align:center;padding:20px;color:#888;">No bookings found matching filters.</td></tr>`;
   }
 
+  function loadMemberships() {
+    const tbody = document.getElementById("adminMembershipsList");
+    if (!tbody) return;
+
+    const memberships = getDB("memberships") || [];
+    const users = getDB("users") || [];
+    const todayStr = today();
+
+    tbody.innerHTML = memberships.length
+      ? memberships.map(m => {
+          const user = users.find(u => u.user_id === m.user_id) || { full_name: "Unknown" };
+          const daysLeft = Math.ceil((new Date(m.expiry_date) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
+          const expiringSoon = m.status === "Active" && daysLeft >= 0 && daysLeft <= 7;
+          const expiryDisplay = expiringSoon
+            ? `${m.expiry_date}<br><span style="color:#f59e0b;font-weight:700;font-size:0.72rem;">⚠ Expiring in ${daysLeft}d — follow up</span>`
+            : m.expiry_date;
+
+          return `<tr>
+            <td style="padding:12px 8px;font-weight:600;">${user.full_name}</td>
+            <td style="padding:12px 8px;">${m.membership_type}</td>
+            <td style="padding:12px 8px;">${m.start_date}</td>
+            <td style="padding:12px 8px;font-size:0.85rem;">${expiryDisplay}</td>
+            <td style="padding:12px 8px;">${statusBadge(m.status)}</td>
+            <td style="padding:12px 8px;">
+              <select onchange="handleMembershipStatusChange(${m.user_id}, this.value)" style="padding:4px 6px;border-radius:4px;">
+                <option value="Active" ${m.status === "Active" ? "selected" : ""}>Active</option>
+                <option value="Expired" ${m.status === "Expired" ? "selected" : ""}>Expired</option>
+                <option value="Cancelled" ${m.status === "Cancelled" ? "selected" : ""}>Cancelled</option>
+              </select>
+            </td>
+          </tr>`;
+        }).join("")
+      : `<tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">No memberships found.</td></tr>`;
+  }
+
+  function loadCourts() {
+    const tbody = document.getElementById("adminCourtsList");
+    if (!tbody) return;
+
+    const courts = getCourts();
+    tbody.innerHTML = courts.length
+      ? courts.map(c => `<tr>
+          <td style="padding:12px 8px;">#${c.court_id}</td>
+          <td style="padding:12px 8px;font-weight:600;">${c.court_name}</td>
+          <td style="padding:12px 8px;">${c.court_type}</td>
+          <td style="padding:12px 8px;">RM${parseFloat(c.price_per_hour).toFixed(2)}/hr</td>
+          <td style="padding:12px 8px;">${statusBadge(c.status)}</td>
+          <td style="padding:12px 8px;">
+            <select onchange="handleCourtStatusChange(${c.court_id}, this.value)" style="padding:4px 6px;border-radius:4px;">
+              <option value="Available" ${c.status === "Available" ? "selected" : ""}>Available</option>
+              <option value="Under Maintenance" ${c.status === "Under Maintenance" ? "selected" : ""}>Under Maintenance</option>
+            </select>
+          </td>
+        </tr>`).join("")
+      : `<tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">No courts configured.</td></tr>`;
+  }
+
+  function loadBookingHistory() {
+    const tbody = document.getElementById("adminHistoryList");
+    if (!tbody) return;
+
+    const history = getDB("booking_history") || [];
+    tbody.innerHTML = history.length
+      ? [...history].reverse().map(h => `<tr>
+          <td style="padding:10px 8px;">#${h.booking_id}</td>
+          <td style="padding:10px 8px;">${h.action}</td>
+          <td style="padding:10px 8px;font-size:0.8rem;color:#666;white-space:nowrap;">${h.action_date}</td>
+          <td style="padding:10px 8px;font-size:0.85rem;">${h.remarks || "-"}</td>
+        </tr>`).join("")
+      : `<tr><td colspan="4" style="text-align:center;padding:16px;color:#888;">No history recorded yet.</td></tr>`;
+  }
+
+  function loadReports() {
+    const bookings = getDB("bookings") || [];
+    const payments = getDB("payments") || [];
+    const memberships = getDB("memberships") || [];
+    const courts = getCourts();
+
+    const totalRevenue = payments
+      .filter(p => p.payment_status === "Paid")
+      .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    setText("reportTotalBookings", bookings.length);
+    setText("reportTotalRevenue", `RM${totalRevenue.toFixed(2)}`);
+    setText("reportApproved", bookings.filter(b => b.status === "Approved").length);
+    setText("reportPending", bookings.filter(b => b.status === "Pending").length);
+    setText("reportRejected", bookings.filter(b => b.status === "Rejected").length);
+    setText("reportActiveMembers", memberships.filter(m => m.status === "Active").length);
+
+    const usageTbody = document.getElementById("reportCourtUsage");
+    if (usageTbody) {
+      usageTbody.innerHTML = courts.map(c => {
+        const count = bookings.filter(b => b.court_name === c.court_name).length;
+        return `<tr><td style="padding:8px;">${c.court_name}</td><td style="padding:8px;">${count} booking(s)</td></tr>`;
+      }).join("");
+    }
+  }
+
   const searchBtn = document.getElementById("btnSearch");
   if (searchBtn) searchBtn.addEventListener("click", loadBookings);
 
+  const reportBtn = document.getElementById("btnGenerateReport");
+  if (reportBtn) reportBtn.addEventListener("click", loadReports);
+
+  populateCourtFilter();
   loadUsers();
   loadBookings();
+  loadMemberships();
+  loadCourts();
+  loadBookingHistory();
+  loadReports();
 }
 
 window.handleBookingAction = function(bookingId, action) {
   if (!confirm(`Mark booking #${bookingId} as ${action}?`)) return;
-  
+  const remarks = prompt("Add a remark for this action (optional):", "") || "";
+
   const bookings = getDB("bookings");
   const idx = bookings.findIndex(b => b.booking_id === bookingId);
   
   if (idx >= 0) { 
     bookings[idx].status = action; 
     setDB("bookings", bookings); 
+    logBookingHistory(bookingId, action, remarks);
     
     if (action === "Rejected") {
       const payments = getDB("payments");
@@ -789,6 +1028,58 @@ window.handleBookingAction = function(bookingId, action) {
   }
   
   alert(`Booking ${action} successfully.`);
+  window.location.reload();
+};
+
+window.handleBookingReschedule = function(bookingId) {
+  const bookings = getDB("bookings");
+  const idx = bookings.findIndex(b => b.booking_id === bookingId);
+  if (idx < 0) return;
+  const booking = bookings[idx];
+
+  const newDate = prompt("New date (YYYY-MM-DD):", booking.booking_date);
+  if (!newDate) return;
+  const newSlot = prompt("New time slot (e.g. 8:00 AM - 10:00 AM):", booking.slot);
+  if (!newSlot) return;
+  if (!TIME_SLOTS.includes(newSlot)) { alert("Invalid time slot. Please use one of the exact time slot labels used on the booking page."); return; }
+
+  const conflict = bookings.find(b => b.booking_id !== bookingId && b.court_name === booking.court_name && b.booking_date === newDate && b.slot === newSlot && b.status !== "Rejected");
+  if (conflict) { alert("That slot is already booked for this court. Reschedule cancelled."); return; }
+
+  const remarks = prompt("Remarks for this reschedule (optional):", "") || "";
+  const oldInfo = `${booking.booking_date}, ${booking.slot}`;
+  const [startTime, endTime] = newSlot.split(" - ");
+
+  booking.booking_date = newDate;
+  booking.slot = newSlot;
+  booking.start_time = startTime;
+  booking.end_time = endTime;
+  bookings[idx] = booking;
+  setDB("bookings", bookings);
+
+  logBookingHistory(bookingId, "Rescheduled", remarks ? `From ${oldInfo} to ${newDate}, ${newSlot}. ${remarks}` : `From ${oldInfo} to ${newDate}, ${newSlot}`);
+
+  alert("Booking rescheduled successfully.");
+  window.location.reload();
+};
+
+window.handleMembershipStatusChange = function(userId, newStatus) {
+  const memberships = getDB("memberships");
+  const idx = memberships.findIndex(m => m.user_id === userId);
+  if (idx < 0) return;
+  memberships[idx].status = newStatus;
+  setDB("memberships", memberships);
+  alert("Membership status updated.");
+  window.location.reload();
+};
+
+window.handleCourtStatusChange = function(courtId, newStatus) {
+  const courts = getDB("courts");
+  const idx = courts.findIndex(c => c.court_id === courtId);
+  if (idx < 0) return;
+  courts[idx].status = newStatus;
+  setDB("courts", courts);
+  alert("Court status updated.");
   window.location.reload();
 };
 
