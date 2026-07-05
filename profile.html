@@ -62,10 +62,12 @@
       <div class="profile-layout">
         <div class="avatar-container">
           <div class="whatsapp-avatar-box">
-            <svg viewBox="0 0 24 24" style="width: 80px; height: 80px; fill: #8a8d91; margin-top: 20px;">
+            <!-- Ikon SVG kelabu asal -->
+            <svg id="avatarSvg" viewBox="0 0 24 24" style="width: 80px; height: 80px; fill: #8a8d91; margin-top: 20px;">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/>
             </svg>
-            <img id="avatarImage" src="" alt="" style="display: none;">
+            <!-- Tag Img (gaya paparan akan dikawal oleh JavaScript) -->
+            <img id="avatarImage" src="" alt="Profile Picture" style="display: none;">
           </div>
           <label class="btn-upload">
             Change Photo
@@ -98,14 +100,5 @@
     </main>
   </div>
   <script src="app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-      if (currentUser) {
-        const nameElement = document.getElementById('sidebarName');
-        if (nameElement) nameElement.textContent = currentUser.full_name || 'User';
-      }
-    });
-  </script>
 </body>
 </html>
