@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="styles.css">
   <style>
     .admin-sidebar .user-role { color: #E8000E !important; }
-    .admin-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:28px; }
+    .admin-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
   </style>
 </head>
 <body data-page="admin">
@@ -103,6 +103,12 @@
             <label for="filterDate">Date</label>
             <input type="date" id="filterDate">
           </div>
+          <div class="field">
+            <label for="filterCourt">Court</label>
+            <select id="filterCourt">
+              <option value="">All Courts</option>
+            </select>
+          </div>
           <button class="btn btn-primary" id="btnSearch">Search</button>
         </div>
         <div class="table-wrap">
@@ -121,6 +127,113 @@
             </thead>
             <tbody id="adminBookingsList">
               <tr><td colspan="8" style="text-align:center;padding:20px;color:#888;">Loading bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Reports -->
+      <div class="card">
+        <div class="card-title">Generate Reports</div>
+        <div class="admin-stat-grid">
+          <div class="card" style="margin-bottom:0;">
+            <div style="font-size:0.78rem;color:#888;">Total Bookings</div>
+            <div id="reportTotalBookings" style="font-size:1.6rem;font-weight:700;">0</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div style="font-size:0.78rem;color:#888;">Total Revenue</div>
+            <div id="reportTotalRevenue" style="font-size:1.6rem;font-weight:700;color:var(--red);white-space:nowrap;">RM0.00</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div style="font-size:0.78rem;color:#888;">Approved</div>
+            <div id="reportApproved" style="font-size:1.6rem;font-weight:700;color:#16a34a;">0</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div style="font-size:0.78rem;color:#888;">Pending</div>
+            <div id="reportPending" style="font-size:1.6rem;font-weight:700;">0</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div style="font-size:0.78rem;color:#888;">Rejected</div>
+            <div id="reportRejected" style="font-size:1.6rem;font-weight:700;color:#dc2626;">0</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div style="font-size:0.78rem;color:#888;">Active Members</div>
+            <div id="reportActiveMembers" style="font-size:1.6rem;font-weight:700;">0</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="padding: 8px; text-align:left;">Court Usage</th>
+                <th style="padding: 8px; text-align:left;">Bookings Made</th>
+              </tr>
+            </thead>
+            <tbody id="reportCourtUsage"></tbody>
+          </table>
+        </div>
+        <button class="btn btn-primary" id="btnGenerateReport" style="margin-top:12px;">Refresh Report</button>
+      </div>
+
+      <!-- Memberships Management -->
+      <div class="card">
+        <div class="card-title">Manage Memberships</div>
+        <div class="table-wrap">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="padding: 12px 8px; text-align: left;">User</th>
+                <th style="padding: 12px 8px; text-align: left;">Type</th>
+                <th style="padding: 12px 8px; text-align: left;">Start Date</th>
+                <th style="padding: 12px 8px; text-align: left;">Expiry Date</th>
+                <th style="padding: 12px 8px; text-align: left;">Status</th>
+                <th style="padding: 12px 8px; text-align: left;">Update Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminMembershipsList">
+              <tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">Loading memberships...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Court Availability -->
+      <div class="card">
+        <div class="card-title">Manage Court Availability</div>
+        <div class="table-wrap">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="padding: 12px 8px; text-align: left;">ID</th>
+                <th style="padding: 12px 8px; text-align: left;">Court</th>
+                <th style="padding: 12px 8px; text-align: left;">Type</th>
+                <th style="padding: 12px 8px; text-align: left;">Price</th>
+                <th style="padding: 12px 8px; text-align: left;">Status</th>
+                <th style="padding: 12px 8px; text-align: left;">Update Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminCourtsList">
+              <tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">Loading courts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Booking History / Audit Trail -->
+      <div class="card">
+        <div class="card-title">Booking History (Audit Trail)</div>
+        <div class="table-wrap">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="padding: 10px 8px; text-align: left;">Booking</th>
+                <th style="padding: 10px 8px; text-align: left;">Action</th>
+                <th style="padding: 10px 8px; text-align: left;">Date & Time</th>
+                <th style="padding: 10px 8px; text-align: left;">Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="adminHistoryList">
+              <tr><td colspan="4" style="text-align:center;padding:16px;color:#888;">Loading history...</td></tr>
             </tbody>
           </table>
         </div>
